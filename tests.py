@@ -109,43 +109,45 @@ class DastTests(unittest.TestCase):
             '\x10' + 'a' * 16), Container(length=16, data='a' * 16))
 
     def test_combo(self):
+        def true(typ, data, value):
+            self.assertEqual(typ.parse(data), value)
+            self.assertEqual(typ.build(value), data)
+
         # array nested inside struct
-        self.assertEqual(Struct(None, Array(UBInt8('a'), 2)).parse('aa'),
+        true(Struct(None, Array(UBInt8('a'), 2)), 'aa',
             Container(a=[0x61, 0x61]))
 
         # struct nested in array
-        self.assertEqual(Array(Struct('s', UBInt8('a'), UBInt16('b')),
-            2).parse('abcdef'), [Container(a=0x61, b=0x6263),
-            Container(a=0x64, b=0x6566)])
+        true(Array(Struct('s', UBInt8('a'), UBInt16('b')), 2), 'abcdef',
+            [Container(a=0x61, b=0x6263), Container(a=0x64, b=0x6566)])
 
         # variable length array nested in struct
-        self.assertEqual(Struct(None, UBInt8('length'), Array(UBInt16('data'),
-            'length')).parse('\x02\x00\x01\x00\x02'), Container(length=2,
-            data=[1, 2]))
+        true(Struct(None, UBInt8('length'), Array(UBInt16('data'), 'length')),
+            '\x02\x00\x01\x00\x02', Container(length=2, data=[1, 2]))
 
         # variable length array nested inside a struct inside a struct
         # with the length obtained by using a string
-        self.assertEqual(Struct(None, UBInt8('length'), Struct('a',
-            Array(ULInt32('b'), '_.length'))).parse(
-            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'),
+        true(Struct(None, UBInt8('length'), Struct('a', Array(ULInt32('b'),
+            '_.length'))),
+            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00',
             Container(length=3, a=Container(b=[1, 2, 3])))
 
         # same as above, but length is obtained using a lambda
-        self.assertEqual(Struct(None, UBInt8('length'), Struct('a',
-            Array(ULInt32('b'), lambda ctx: ctx._.length))).parse(
-            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'),
+        true(Struct(None, UBInt8('length'), Struct('a',
+            Array(ULInt32('b'), lambda ctx: ctx._.length))),
+            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00',
             Container(length=3, a=Container(b=[1, 2, 3])))
 
         # use same struct twice
         a = Struct('a', UBInt32('b'))
-        self.assertEqual(Struct(None, Struct('a', a), Struct('b', a)).parse(
-            'aaaabbbb'), Container(a=Container(a=Container(b=0x61616161)),
+        true(Struct(None, Struct('a', a), Struct('b', a)),
+            'aaaabbbb', Container(a=Container(a=Container(b=0x61616161)),
             b=Container(a=Container(b=0x62626262))))
 
         # compute a value
-        self.assertEqual(Struct(None, UBInt8('major_version'),
+        true(Struct(None, UBInt8('major_version'),
             UBInt8('minor_version'), Value('version', lambda ctx: '%d.%d' % (
-            ctx.major_version, ctx.minor_version))).parse('\x0d\x25'),
+            ctx.major_version, ctx.minor_version))), '\x0d\x25',
             Container(major_version=13, minor_version=37, version='13.37'))
 
 if __name__ == '__main__':
