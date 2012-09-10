@@ -16,3 +16,6 @@ class Array:
         for x in xrange(len(data)):
             ret += self.item.build(data[x])
         return ret
+
+    def sizeof(self):
+        return self.min_ * self.item.sizeof()

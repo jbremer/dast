@@ -57,5 +57,23 @@ class DastTests(unittest.TestCase):
         true(SLInt32, 2, '\x00\x00\x00\x00\x01\x00\x00\x00', [0, 1])
         true(SBInt64, 2, '\xff' * 15 + '\x00', [-1, -256])
 
+    def test_container(self):
+        self.assertEqual(Container(a=1, b=2), Container(b=2, a=1))
+        self.assertNotEqual(Container(a=2, b=3), Container(a=2, b=4))
+        self.assertEqual(Container(a=1, b=3), Container(b=3, a=1))
+
+    def test_struct(self):
+        def true(typ, data, value):
+            self.assertEqual(typ.parse(data), value)
+            self.assertEqual(typ.build(value), data)
+
+        true(Struct(None, UBInt16('a'), UBInt16('b')), '\xaa\xbb\xcc\xdd',
+            Container(a=0xaabb, b=0xccdd))
+        true(Struct(None, Struct('x', UBInt8('a'), UBInt8('b')),
+            Struct('y', UBInt8('c'), UBInt8('d'))), 'abcd', Container(
+            x=Container(a=0x61, b=0x62), y=Container(c=0x63, d=0x64)))
+        self.assertEqual(
+            Struct(None, UBInt16(None), ULInt32(None)).sizeof(), 6)
+
 if __name__ == '__main__':
     unittest.main()
