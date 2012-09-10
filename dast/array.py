@@ -29,6 +29,8 @@ class Array:
         min_ = self.obtain(self.min_)
         max_ = self.obtain(self.max_)
 
+        # if min_ is zero, then x is not initialized automatically
+        x = 0
         for x in xrange(min_):
             ret.append(self.item.parse(data, offset))
             offset += self.item.sizeof()

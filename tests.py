@@ -69,6 +69,9 @@ class DastTests(unittest.TestCase):
         size(Array(SLInt16(None), 3, 7), 'a' * 10, 10)
         size(Array(SLInt16(None), 3, 7), 'a' * 14, 14)
 
+        # empty list
+        eq(Array(SLInt8(None), 0).parse('aaaa'), [])
+
     def test_container(self):
         self.assertEqual(Container(a=1, b=2), Container(b=2, a=1))
         self.assertNotEqual(Container(a=2, b=3), Container(a=2, b=4))
@@ -86,6 +89,9 @@ class DastTests(unittest.TestCase):
             x=Container(a=0x61, b=0x62), y=Container(c=0x63, d=0x64)))
         self.assertEqual(
             Struct(None, UBInt16(None), ULInt32(None)).sizeof(), 6)
+
+        # empty struct
+        self.assertEqual(Struct(None).parse('aaaa'), Container())
 
     def test_combo(self):
         # array nested inside struct
