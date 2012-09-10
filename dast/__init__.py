@@ -18,5 +18,5 @@ __all__ = [
     'Container', 'Struct',
 
     # misc
-    'sizeof',
+    'sizeof', 'Value',
 ]

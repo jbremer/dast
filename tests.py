@@ -142,5 +142,11 @@ class DastTests(unittest.TestCase):
             'aaaabbbb'), Container(a=Container(a=Container(b=0x61616161)),
             b=Container(a=Container(b=0x62626262))))
 
+        # compute a value
+        self.assertEqual(Struct(None, UBInt8('major_version'),
+            UBInt8('minor_version'), Value('version', lambda ctx: '%d.%d' % (
+            ctx.major_version, ctx.minor_version))).parse('\x0d\x25'),
+            Container(major_version=13, minor_version=37, version='13.37'))
+
 if __name__ == '__main__':
     unittest.main()
