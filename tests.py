@@ -101,6 +101,13 @@ class DastTests(unittest.TestCase):
         true(Struct('a', Struct('b', Struct('c', UBInt8('d')))), 'a',
             Container(b=Container(c=Container(d=0x61))))
 
+    def test_data(self):
+        eq = self.assertEqual
+
+        eq(Data(None, lambda ctx: 32).parse('a' * 40), 'a' * 32)
+        eq(Struct(None, UBInt8('length'), Data('data', 'length')).parse(
+            '\x10' + 'a' * 16), Container(length=16, data='a' * 16))
+
     def test_combo(self):
         # array nested inside struct
         self.assertEqual(Struct(None, Array(UBInt8('a'), 2)).parse('aa'),

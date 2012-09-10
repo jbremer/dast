@@ -1,4 +1,20 @@
 
+def _obtain(self, value):
+    if value is None:
+        return None
+
+    if isinstance(value, (int, long)):
+        return int(value)
+
+    if isinstance(value, str):
+        obj = self._
+        for part in value.split('.'):
+            obj = getattr(obj, part)
+        return obj
+
+    if callable(value):
+        return value(getattr(self, '_', None))
+
 class Array:
     def __init__(self, item, min_=None, max_=None):
         self.item = item
@@ -6,28 +22,12 @@ class Array:
         self.min_ = min_
         self.max_ = max_
 
-    def obtain(self, value):
-        if value is None:
-            return None
-
-        if isinstance(value, (int, long)):
-            return int(value)
-
-        if isinstance(value, str):
-            obj = self._
-            for part in value.split('.'):
-                obj = getattr(obj, part)
-            return obj
-
-        if callable(value):
-            return value(self._)
-
     def parse(self, data, offset=0):
         ret = []
 
         # obtain the length
-        min_ = self.obtain(self.min_)
-        max_ = self.obtain(self.max_)
+        min_ = _obtain(self, self.min_)
+        max_ = _obtain(self, self.max_)
 
         # if min_ is zero, then x is not initialized automatically
         x = 0
@@ -47,11 +47,26 @@ class Array:
         self.size = x * self.item.sizeof()
         return ret
 
-    def build(self, data):
+    def build(self, value):
         ret = ''
-        for x in xrange(len(data)):
-            ret += self.item.build(data[x])
+        for x in xrange(len(value)):
+            ret += self.item.build(value[x])
         return ret
+
+    def sizeof(self):
+        return self.size
+
+class Data:
+    def __init__(self, name, size):
+        self.name = name
+        self.size = size
+
+    def parse(self, data, offset=0):
+        self.size = _obtain(self, self.size)
+        return data[offset:offset+self.size]
+
+    def build(self, value):
+        return value
 
     def sizeof(self):
         return self.size

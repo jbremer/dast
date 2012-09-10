@@ -12,7 +12,7 @@ __all__ = [
     'BFloat32', 'LFloat32', 'BFloat64', 'LFloat64',
 
     # array
-    'Array',
+    'Array', 'Data',
 
     # struct
     'Container', 'Struct',
