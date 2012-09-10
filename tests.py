@@ -49,6 +49,10 @@ class DastTests(unittest.TestCase):
         def true(typ, count, data, value):
             self.assertEqual(Array(typ(None), count).parse(data), value)
             self.assertEqual(Array(typ(None), count).build(value), data)
+        def size(typ, data, siz):
+            typ.parse(data)
+            self.assertEqual(typ.sizeof(), siz)
+        eq = self.assertEqual
 
         true(ULInt16, 4, '\x01\x02\x03\x04\x05\x06\x07\x08',
             [0x201, 0x403, 0x605, 0x807])
@@ -56,6 +60,14 @@ class DastTests(unittest.TestCase):
             [0x102, 0x304, 0x506, 0x708])
         true(SLInt32, 2, '\x00\x00\x00\x00\x01\x00\x00\x00', [0, 1])
         true(SBInt64, 2, '\xff' * 15 + '\x00', [-1, -256])
+
+        eq(Array(SLInt16(None), 3, 7).parse('a' * 6), [0x6161] * 3)
+        eq(Array(SLInt16(None), 3, 7).parse('a' * 10), [0x6161] * 5)
+        eq(Array(SLInt16(None), 3, 7).parse('a' * 14), [0x6161] * 7)
+        eq(Array(SLInt16(None), 3, 7).parse('a' * 16), [0x6161] * 7)
+        size(Array(SLInt16(None), 3, 7), 'a' * 6, 6)
+        size(Array(SLInt16(None), 3, 7), 'a' * 10, 10)
+        size(Array(SLInt16(None), 3, 7), 'a' * 14, 14)
 
     def test_container(self):
         self.assertEqual(Container(a=1, b=2), Container(b=2, a=1))
