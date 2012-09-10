@@ -87,5 +87,12 @@ class DastTests(unittest.TestCase):
         self.assertEqual(
             Struct(None, UBInt16(None), ULInt32(None)).sizeof(), 6)
 
+    def test_combo(self):
+        self.assertEqual(Struct(None, Array(UBInt8('a'), 2)).parse('aa'),
+            Container(a=[0x61, 0x61]))
+        self.assertEqual(Array(Struct('s', UBInt8('a'), UBInt16('b')),
+            2).parse('abcdef'), [Container(a=0x61, b=0x6263),
+            Container(a=0x64, b=0x6566)])
+
 if __name__ == '__main__':
     unittest.main()

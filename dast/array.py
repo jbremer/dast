@@ -2,6 +2,7 @@
 class Array:
     def __init__(self, item, min_=None, max_=None):
         self.item = item
+        self.name = item.name
         self.min_ = min_
         self.max_ = max_
 
