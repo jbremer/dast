@@ -72,6 +72,10 @@ class DastTests(unittest.TestCase):
         # empty list
         eq(Array(SLInt8(None), 0).parse('aaaa'), [])
 
+        # nested arrays
+        self.assertEqual(Array(Array(UBInt8('a'), 4), 5).parse('a' * 20),
+            [[0x61] * 4] * 5)
+
     def test_container(self):
         self.assertEqual(Container(a=1, b=2), Container(b=2, a=1))
         self.assertNotEqual(Container(a=2, b=3), Container(a=2, b=4))
@@ -92,6 +96,10 @@ class DastTests(unittest.TestCase):
 
         # empty struct
         self.assertEqual(Struct(None).parse('aaaa'), Container())
+
+        # nested structs
+        true(Struct('a', Struct('b', Struct('c', UBInt8('d')))), 'a',
+            Container(b=Container(c=Container(d=0x61))))
 
     def test_combo(self):
         # array nested inside struct
@@ -120,6 +128,12 @@ class DastTests(unittest.TestCase):
             Array(ULInt32('b'), lambda ctx: ctx._.length))).parse(
             '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'),
             Container(length=3, a=Container(b=[1, 2, 3])))
+
+        # use same struct twice
+        a = Struct('a', UBInt32('b'))
+        self.assertEqual(Struct(None, Struct('a', a), Struct('b', a)).parse(
+            'aaaabbbb'), Container(a=Container(a=Container(b=0x61616161)),
+            b=Container(a=Container(b=0x62626262))))
 
 if __name__ == '__main__':
     unittest.main()
