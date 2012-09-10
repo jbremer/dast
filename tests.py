@@ -88,11 +88,32 @@ class DastTests(unittest.TestCase):
             Struct(None, UBInt16(None), ULInt32(None)).sizeof(), 6)
 
     def test_combo(self):
+        # array nested inside struct
         self.assertEqual(Struct(None, Array(UBInt8('a'), 2)).parse('aa'),
             Container(a=[0x61, 0x61]))
+
+        # struct nested in array
         self.assertEqual(Array(Struct('s', UBInt8('a'), UBInt16('b')),
             2).parse('abcdef'), [Container(a=0x61, b=0x6263),
             Container(a=0x64, b=0x6566)])
+
+        # variable length array nested in struct
+        self.assertEqual(Struct(None, UBInt8('length'), Array(UBInt16('data'),
+            'length')).parse('\x02\x00\x01\x00\x02'), Container(length=2,
+            data=[1, 2]))
+
+        # variable length array nested inside a struct inside a struct
+        # with the length obtained by using a string
+        self.assertEqual(Struct(None, UBInt8('length'), Struct('a',
+            Array(ULInt32('b'), '_.length'))).parse(
+            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'),
+            Container(length=3, a=Container(b=[1, 2, 3])))
+
+        # same as above, but length is obtained using a lambda
+        self.assertEqual(Struct(None, UBInt8('length'), Struct('a',
+            Array(ULInt32('b'), lambda ctx: ctx._.length))).parse(
+            '\x03\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'),
+            Container(length=3, a=Container(b=[1, 2, 3])))
 
 if __name__ == '__main__':
     unittest.main()

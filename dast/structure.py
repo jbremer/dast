@@ -34,7 +34,9 @@ class Struct:
 
     def parse(self, data, offset=0):
         ret = Container()
+        ret._ = getattr(self, '_', None)
         for item in self.items:
+            item._ = ret
             value = item.parse(data, offset)
             offset += item.sizeof()
             ret.add_item(item.name, value)
